@@ -25,8 +25,7 @@ elon_img = pygame.transform.scale(elon_img, (80, 80))
 doge_img = pygame.transform.scale(doge_img, (40, 40))
 
 # Set up the display
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Elon Musk Eats Dogecoin")
+screen = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # Game variables
 elon_x = SCREEN_WIDTH // 2
@@ -89,29 +88,31 @@ def capture_frame():
         time.sleep(0.1)
         pygame.image.save(screen, 'screenshot.jpg')
 
-# Start the game loop and screen capture in separate threads
-running = True
-game_thread = Thread(target=game_loop)
-capture_thread = Thread(target=capture_frame)
-game_thread.start()
-capture_thread.start()
-
 # Streamlit interface
-st.title("Elon Musk Eats Dogecoin")
+def streamlit_interface():
+    st.title("Elon Musk Eats Dogecoin")
 
-# Display the game screen in Streamlit
-while running:
-    img = Image.open('screenshot.jpg')
-    st.image(img)
-    time.sleep(0.1)
+    # Display the game screen in Streamlit
+    while running:
+        img = Image.open('screenshot.jpg')
+        st.image(img)
+        time.sleep(0.1)
 
-running = False
-game_thread.join()
-capture_thread.join()
-pygame.quit()
-
-
-# Refresh button to play again
-if st.button('Play Again'):
-    st.experimental_rerun()
-
+if __name__ == '__main__':
+    running = True
+    
+    # Start Pygame loop and screen capture in separate threads
+    game_thread = Thread(target=game_loop)
+    capture_thread = Thread(target=capture_frame)
+    
+    game_thread.start()
+    capture_thread.start()
+    
+    # Run Streamlit interface
+    streamlit_interface()
+    
+    # Clean up threads and Pygame resources
+    running = False
+    game_thread.join()
+    capture_thread.join()
+    pygame.quit()
