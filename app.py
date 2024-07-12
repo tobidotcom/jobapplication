@@ -119,10 +119,12 @@ def streamlit_interface():
     st.title("Space Invaders")
     st.write("Defeat the enemies and show your skills!")
 
-    # Run the game loop
-    game_loop()
+    # Start Pygame game loop in a separate thread
+    pygame_thread = st.empty()
+    with pygame_thread:
+        game_loop()
 
-    # Display "HIRE ME! I'M TALENTED!"
+    # After the game ends, display "HIRE ME! I'M TALENTED!"
     st.markdown("---")
     st.write("# HIRE ME! I'M TALENTED!")
     st.write("Let's work together to create awesome things!")
