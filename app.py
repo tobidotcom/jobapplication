@@ -1,118 +1,132 @@
+import streamlit as st
 import pygame
 import random
-import streamlit as st
-from threading import Thread
-import time
-from PIL import Image
+from pygame.locals import *
 
 # Initialize Pygame
 pygame.init()
 
 # Screen dimensions
-SCREEN_WIDTH = 800
+SCREEN_WIDTH = 600
 SCREEN_HEIGHT = 600
 
 # Colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
 
 # Load images
-elon_img = pygame.image.load('elon.png')
-doge_img = pygame.image.load('dogecoin.png')
+player_img = pygame.image.load('player.png')
+player_img = pygame.transform.scale(player_img, (50, 50))
 
-# Resize images
-elon_img = pygame.transform.scale(elon_img, (80, 80))
-doge_img = pygame.transform.scale(doge_img, (40, 40))
+enemy_img = pygame.image.load('enemy.png')
+enemy_img = pygame.transform.scale(enemy_img, (50, 50))
+
+bullet_img = pygame.image.load('bullet.png')
+bullet_img = pygame.transform.scale(bullet_img, (10, 20))
 
 # Set up the display
 screen = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # Game variables
-elon_x = SCREEN_WIDTH // 2
-elon_y = SCREEN_HEIGHT - 100
-elon_speed = 5
+player_x = SCREEN_WIDTH // 2
+player_y = SCREEN_HEIGHT - 100
+player_speed = 5
 
-doges = []
-for i in range(5):
-    x = random.randint(0, SCREEN_WIDTH - 40)
-    y = random.randint(-100, -40)
-    doges.append([x, y])
+bullets = []
+bullet_speed = 8
 
-doge_speed = 2
-score = 0
+enemies = []
+enemy_speed = 2
+enemy_count = 6
 
-# Function to run the game loop
+# Initialize enemies
+for i in range(enemy_count):
+    enemy_x = random.randint(50, SCREEN_WIDTH - 100)
+    enemy_y = random.randint(50, 200)
+    enemies.append([enemy_x, enemy_y])
+
+# Game loop
 def game_loop():
-    global elon_x, elon_y, score, running
+    global player_x, bullets, enemies, running, score
 
     clock = pygame.time.Clock()
+    running = True
+    score = 0
+
     while running:
         screen.fill(BLACK)
-        
+
+        # Event handling
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-        
+
+        # Player movement
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT] and elon_x > 0:
-            elon_x -= elon_speed
-        if keys[pygame.K_RIGHT] and elon_x < SCREEN_WIDTH - 80:
-            elon_x += elon_speed
-        
-        for doge in doges:
-            doge[1] += doge_speed
-            if doge[1] > SCREEN_HEIGHT:
-                doge[1] = random.randint(-100, -40)
-                doge[0] = random.randint(0, SCREEN_WIDTH - 40)
-            
-            if elon_x < doge[0] < elon_x + 80 and elon_y < doge[1] < elon_y + 80:
-                score += 1
-                doge[1] = random.randint(-100, -40)
-                doge[0] = random.randint(0, SCREEN_WIDTH - 40)
-            
-            screen.blit(doge_img, (doge[0], doge[1]))
-        
-        screen.blit(elon_img, (elon_x, elon_y))
-        
-        font = pygame.font.SysFont(None, 55)
+        if keys[pygame.K_LEFT] and player_x > 0:
+            player_x -= player_speed
+        if keys[pygame.K_RIGHT] and player_x < SCREEN_WIDTH - 50:
+            player_x += player_speed
+
+        # Shooting bullets
+        if keys[pygame.K_SPACE]:
+            bullets.append([player_x + 20, player_y])
+
+        # Move bullets
+        for bullet in bullets:
+            bullet[1] -= bullet_speed
+
+        # Move enemies and check collisions
+        for enemy in enemies:
+            enemy[1] += enemy_speed
+
+            # Check collision with player
+            if (player_x < enemy[0] < player_x + 50 and
+                player_y < enemy[1] < player_y + 50):
+                running = False
+
+            # Check collision with bullets
+            for bullet in bullets:
+                if (bullet[0] < enemy[0] < bullet[0] + 10 and
+                    bullet[1] < enemy[1] < bullet[1] + 20):
+                    bullets.remove(bullet)
+                    enemies.remove(enemy)
+                    score += 1
+
+        # Draw player
+        screen.blit(player_img, (player_x, player_y))
+
+        # Draw bullets
+        for bullet in bullets:
+            screen.blit(bullet_img, (bullet[0], bullet[1]))
+
+        # Draw enemies
+        for enemy in enemies:
+            screen.blit(enemy_img, (enemy[0], enemy[1]))
+
+        # Display score
+        font = pygame.font.SysFont(None, 36)
         text = font.render(f'Score: {score}', True, WHITE)
         screen.blit(text, (10, 10))
-        
+
         pygame.display.flip()
         clock.tick(30)
 
-# Function to capture the Pygame screen as an image
-def capture_frame():
-    global running
-    while running:
-        time.sleep(0.1)
-        pygame.image.save(screen, 'screenshot.jpg')
-
 # Streamlit interface
 def streamlit_interface():
-    st.title("Elon Musk Eats Dogecoin")
+    st.title("Space Invaders")
+    st.write("Defeat the enemies and show your skills!")
 
-    # Display the game screen in Streamlit
-    while running:
-        img = Image.open('screenshot.jpg')
-        st.image(img)
-        time.sleep(0.1)
+    # Run the game loop
+    game_loop()
 
+    # Display "HIRE ME! I'M TALENTED!"
+    st.markdown("---")
+    st.write("# HIRE ME! I'M TALENTED!")
+    st.write("Let's work together to create awesome things!")
+
+# Run Streamlit interface
 if __name__ == '__main__':
-    running = True
-    
-    # Start Pygame loop and screen capture in separate threads
-    game_thread = Thread(target=game_loop)
-    capture_thread = Thread(target=capture_frame)
-    
-    game_thread.start()
-    capture_thread.start()
-    
-    # Run Streamlit interface
     streamlit_interface()
-    
-    # Clean up threads and Pygame resources
-    running = False
-    game_thread.join()
-    capture_thread.join()
-    pygame.quit()
