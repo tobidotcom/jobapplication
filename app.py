@@ -1,6 +1,7 @@
 import streamlit as st
 import pygame
 import random
+import numpy as np
 from pygame.locals import *
 
 # Initialize Pygame
@@ -13,8 +14,6 @@ SCREEN_HEIGHT = 600
 # Colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
-GREEN = (0, 255, 0)
-RED = (255, 0, 0)
 
 # Load images
 player_img = pygame.image.load('player.png')
@@ -26,7 +25,7 @@ enemy_img = pygame.transform.scale(enemy_img, (50, 50))
 bullet_img = pygame.image.load('bullet.png')
 bullet_img = pygame.transform.scale(bullet_img, (10, 20))
 
-# Set up the display
+# Initialize Pygame screen
 screen = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # Game variables
@@ -119,18 +118,18 @@ def streamlit_interface():
     st.title("Space Invaders")
     st.write("Defeat the enemies and show your skills!")
 
-    # Create a Pygame display in Streamlit
-    pygame_display = st.image(screen, caption='Space Invaders')
-
-    # Run the game loop
-    run_game()
+    # Pygame canvas in Streamlit
+    pygame_thread = st.empty()
+    with pygame_thread:
+        run_game()
 
     # After the game ends, display "HIRE ME! I'M TALENTED!"
     st.markdown("---")
-    st.write("# HIRE ME! I'M TALENTED!")
+    st.header("HIRE ME! I'M TALENTED!")
     st.write("Let's work together to create awesome things!")
 
 # Run Streamlit interface
 if __name__ == '__main__':
     streamlit_interface()
+
 
