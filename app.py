@@ -47,8 +47,8 @@ for i in range(enemy_count):
     enemy_y = random.randint(50, 200)
     enemies.append([enemy_x, enemy_y])
 
-# Game loop
-def game_loop():
+# Function to handle game logic and drawing
+def run_game():
     global player_x, bullets, enemies, running, score
 
     clock = pygame.time.Clock()
@@ -119,10 +119,11 @@ def streamlit_interface():
     st.title("Space Invaders")
     st.write("Defeat the enemies and show your skills!")
 
-    # Start Pygame game loop in a separate thread
-    pygame_thread = st.empty()
-    with pygame_thread:
-        game_loop()
+    # Create a Pygame display in Streamlit
+    pygame_display = st.image(screen, caption='Space Invaders')
+
+    # Run the game loop
+    run_game()
 
     # After the game ends, display "HIRE ME! I'M TALENTED!"
     st.markdown("---")
@@ -132,3 +133,4 @@ def streamlit_interface():
 # Run Streamlit interface
 if __name__ == '__main__':
     streamlit_interface()
+
